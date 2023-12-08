@@ -23,12 +23,13 @@ apply plugin: 'com.android.library'
 
 android {
     namespace 'com.jaumard.smsautofill'
-    compileSdkVersion 33
+    compileSdk 33
 
     defaultConfig {
         minSdkVersion 21
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+
     lintOptions {
         disable 'InvalidPackage'
     }

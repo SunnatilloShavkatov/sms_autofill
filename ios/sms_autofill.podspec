@@ -3,7 +3,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'sms_autofill'
-  s.version          = '0.0.1'
+  s.version          = '1.0.0'
   s.summary          = 'Flutter plugin to provide SMS code autofill support'
   s.description      = <<-DESC
 Flutter plugin to provide SMS code autofill support
@@ -16,6 +16,6 @@ Flutter plugin to provide SMS code autofill support
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
 
-  s.ios.deployment_target = '8.0'
+  s.ios.deployment_target = '11.0'
 end
 
