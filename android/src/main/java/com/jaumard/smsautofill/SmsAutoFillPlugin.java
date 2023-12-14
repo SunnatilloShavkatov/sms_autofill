@@ -1,5 +1,6 @@
 package com.jaumard.smsautofill;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -62,6 +63,7 @@ public class SmsAutoFillPlugin implements FlutterPlugin, ActivityAware, MethodCa
             if (requestCode == SmsAutoFillPlugin.PHONE_HINT_REQUEST && pendingHintResult != null) {
                 if (resultCode == Activity.RESULT_OK && data != null) {
                     Credential credential = data.getParcelableExtra(Credential.EXTRA_KEY);
+                    assert credential != null;
                     final String phoneNumber = credential.getId();
                     pendingHintResult.success(phoneNumber);
                 } else {
@@ -93,6 +95,7 @@ public class SmsAutoFillPlugin implements FlutterPlugin, ActivityAware, MethodCa
         new SmsAutoFillPlugin(registrar);
     }
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @Override
     public void onMethodCall(MethodCall call, @NonNull final Result result) {
         switch (call.method) {
@@ -105,16 +108,23 @@ public class SmsAutoFillPlugin implements FlutterPlugin, ActivityAware, MethodCa
                 SmsRetrieverClient client = SmsRetriever.getClient(activity);
                 Task<Void> task = client.startSmsRetriever();
 
-                task.addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        unregisterReceiver();// unregister existing receiver
-                        broadcastReceiver = new SmsBroadcastReceiver(new WeakReference<>(SmsAutoFillPlugin.this),
-                                smsCodeRegexPattern);
+                task.addOnSuccessListener(aVoid -> {
+                    unregisterReceiver();// unregister existing receiver
+                    broadcastReceiver = new SmsBroadcastReceiver(new WeakReference<>(SmsAutoFillPlugin.this),
+                            smsCodeRegexPattern);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            activity.registerReceiver(broadcastReceiver,
+                                    new IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION), Context.RECEIVER_EXPORTED);
+                        } else {
+                            activity.registerReceiver(broadcastReceiver,
+                                    new IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION));
+                        }
+                    } else {
                         activity.registerReceiver(broadcastReceiver,
                                 new IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION));
-                        result.success(null);
                     }
+                    result.success(null);
                 });
 
                 task.addOnFailureListener(new OnFailureListener() {
